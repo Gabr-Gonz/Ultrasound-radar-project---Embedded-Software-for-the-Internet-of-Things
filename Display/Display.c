@@ -2,7 +2,6 @@
 #include <math.h>
 #include "Display.h"
 
-LCD_HX8353E display;
 #define RADAR_RANGE 200
 
 // ====== INITIALIZE STATIC UI ======
