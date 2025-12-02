@@ -1,87 +1,88 @@
-#include <Energia.h>
-#include <math.h>
 #include "Display.h"
+#include <math.h>
 
 #define RADAR_RANGE 200
 
-// ====== INITIALIZE STATIC UI ======
-void initDisplayUI() {
-    display.begin();
-    display.clearScreen();
-    display.setFont(Font_Terminal6x8);
-    display.setTextColor(WHITE);
-    display.gText(10, 10, "MSP432 RADAR SYSTEM");
+void initDisplayUI(Graphics_Context *ctx) {
+    Graphics_clearDisplay(ctx);
+    Graphics_setFont(ctx, &g_sFontFixed6x8);
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);
+
+    Graphics_drawString(ctx, (int8_t*)"MSP432 RADAR SYSTEM", AUTO_STRING_LENGTH, 10, 10, OPAQUE);
 }
 
-// ====== DRAW STATIC UI ELEMENTS ======
-void displayUI() {
-    display.fillRectangle(0, 20, 128, 140, BLACK);
-    display.gText(5, 25, "STATUS:");
-    display.gText(5, 45, "ANGLE:");
-    display.gText(5, 65, "DIST:");
-    display.gText(5, 85, "ALERT:");
+void displayUI(Graphics_Context *ctx) {
+    Graphics_Rectangle rect = {0, 20, 128, 140};
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_BLACK);
+    Graphics_fillRectangle(ctx, &rect);
+
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);
+    Graphics_drawString(ctx, (int8_t*)"STATUS:", AUTO_STRING_LENGTH, 5, 25, OPAQUE);
+    Graphics_drawString(ctx, (int8_t*)"ANGLE:",  AUTO_STRING_LENGTH, 5, 45, OPAQUE);
+    Graphics_drawString(ctx, (int8_t*)"DIST:",   AUTO_STRING_LENGTH, 5, 65, OPAQUE);
+    Graphics_drawString(ctx, (int8_t*)"ALERT:",  AUTO_STRING_LENGTH, 5, 85, OPAQUE);
 }
 
-// ====== UPDATE DYNAMIC UI ======
-void updateUI(int angle, int distance) {
+void updateUI(Graphics_Context *ctx, int angle, int distance) {
     char buffer[32];
 
-    // Status area
-    display.fillRectangle(60, 20, 128, 12, BLACK);
-    display.gText(60, 20, "ACTIVE");  // main code decides active/stop
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);
 
-    // Angle
+    // STATUS
+    sprintf(buffer, "ACTIVE");
+    Graphics_drawString(ctx, (int8_t*)buffer, AUTO_STRING_LENGTH, 60, 20, OPAQUE);
+
+    // ANGLE
     sprintf(buffer, "%3d deg", angle);
-    display.fillRectangle(60, 40, 128, 12, BLACK);
-    display.gText(60, 40, buffer);
+    Graphics_drawString(ctx, (int8_t*)buffer, AUTO_STRING_LENGTH, 60, 40, OPAQUE);
 
-    // Distance
-    display.fillRectangle(60, 60, 128, 12, BLACK);
+    // DISTANCE
     if (distance == -1)
-        display.gText(60, 60, "--");
-    else {
+        sprintf(buffer, "--");
+    else
         sprintf(buffer, "%3d cm", distance);
-        display.gText(60, 60, buffer);
+    Graphics_drawString(ctx, (int8_t*)buffer, AUTO_STRING_LENGTH, 60, 60, OPAQUE);
+
+    // ALERT
+    if (distance != -1 && distance < 30) {
+        Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_RED);
+        Graphics_drawString(ctx, (int8_t*)"!! VERY CLOSE !!", AUTO_STRING_LENGTH, 5, 100, OPAQUE);
+    } else if (distance != -1 && distance < 50) {
+        Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_YELLOW);
+        Graphics_drawString(ctx, (int8_t*)"Object Close", AUTO_STRING_LENGTH, 5, 100, OPAQUE);
+    } else if (distance != -1) {
+        Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_GREEN);
+        Graphics_drawString(ctx, (int8_t*)"Object Detected", AUTO_STRING_LENGTH, 5, 100, OPAQUE);
     }
 
-    // Alert text
-    display.fillRectangle(5, 100, 128, 30, BLACK);
-    if (distance != -1 && distance < 30) {
-        display.setTextColor(RED);
-        display.gText(5, 100, "!! VERY CLOSE !!");
-    } else if (distance != -1 && distance < 50) {
-        display.setTextColor(YELLOW);
-        display.gText(5, 100, "Object Close");
-    } else if (distance != -1) {
-        display.setTextColor(GREEN);
-        display.gText(5, 100, "Object Detected");
-    }
-    display.setTextColor(WHITE);
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);
 }
 
-// ====== RADAR SWEEP GRAPHIC ======
-void drawRadar(int angle, int distance) {
+void drawRadar(Graphics_Context *ctx, int angle, int distance) {
     static int lastX = 64, lastY = 120;
 
-    // Delete old sweep line
-    display.drawLine(64, 120, lastX, lastY, BLACK);
+    // erase old line
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_BLACK);
+    Graphics_drawLine(ctx, 64, 120, lastX, lastY);
 
-    // Convert angle to rad
-    float rad = angle * 3.14159 / 180.0;
-    int x = 64 + 70 * cos(rad);
-    int y = 120 - 70 * sin(rad);
+    float rad = angle * M_PI / 180.0f;
+    int x = 64 + 70 * cosf(rad);
+    int y = 120 - 70 * sinf(rad);
 
-    // Draw new sweep line
-    display.drawLine(64, 120, x, y, GREEN);
+    // new sweep
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_GREEN);
+    Graphics_drawLine(ctx, 64, 120, x, y);
 
     lastX = x;
     lastY = y;
 
-    // Draw detected object on radar
+    // draw object
     if (distance > 0 && distance <= RADAR_RANGE) {
-        float r = (distance / 200.0) * 70;
-        int ox = 64 + r * cos(rad);
-        int oy = 120 - r * sin(rad);
-        display.fillCircle(ox, oy, 3, RED);
+        float r = (distance / 200.0f) * 70;
+        int ox = 64 + r * cosf(rad);
+        int oy = 120 - r * sinf(rad);
+
+        Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_RED);
+        Graphics_fillCircle(ctx, ox, oy, 3);
     }
 }
