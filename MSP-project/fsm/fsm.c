@@ -1,13 +1,14 @@
 #include "fsm.h"
-#include "sensor.h"
-#include "sg90.h"
-#include "edumkii.h"
+#include "../ultrasound-sensor/sensor.h"
+#include "../Servo/sg90.h"
+#include "../Display/Display.h"
+#include "../iot_wifi/iot_wifi.h"
 
 // Costanti di scansione
 #define MIN_ANGLE      0
 #define MAX_ANGLE      180
-#define ANGLE_STEP     2
-#define SCAN_DELAY_MS  50
+#define ANGLE_STEP     5
+#define SCAN_DELAY_MS  5
 
 // Variabili di stato definite in main.c
 extern volatile RadarState_t CurrentState;
@@ -18,33 +19,27 @@ extern int8_t angle_direction;
 extern volatile bool capture_done;
 
 
-void run_state_init() {
-    // 1. Inizializzazione Hardware
-    EDUMKII_init();
-    SG90_init();
-    sensor_init();
-
-    // 2. Transizione al primo stato operativo
+void run_state_init(Graphics_Context *ctx) {
+    // Lascia vuota o usala solo per reset software
     CurrentState = STATE_MOVE_SERVO;
 }
 
-void run_state_move_servo() {
+void run_state_move_servo(Graphics_Context *ctx) {
     // 1. Controlla i limiti e inverte la direzione
-    if (current_angle >= MAX_ANGLE) {
-        angle_direction = -ANGLE_STEP;
-    } else if (current_angle <= MIN_ANGLE) {
-        angle_direction = ANGLE_STEP;
-    }
+        if (current_angle >= MAX_ANGLE) {
+            angle_direction = -ANGLE_STEP;
+            // Pulisce la mappa quando inizia la scansione di ritorno (da 180 a 0)
+            clearRadarMap(ctx);
+        } else if (current_angle <= MIN_ANGLE) {
+            angle_direction = ANGLE_STEP;
+            // Pulisce la mappa quando inizia la scansione in avanti (da 0 a 180)
+            clearRadarMap(ctx);
+        }
 
-    // 2. Imposta l'angolo del servo (SG90_set_angle gestisce la generazione PWM)
-    SG90_set_angle(current_angle);
+        Servo_Set_Angle(current_angle);
+        __delay_cycles(3000 * SCAN_DELAY_MS);
 
-    // 3. Introduci un piccolo ritardo per permettere al servo di stabilizzarsi
-    // Questo ritardo deve essere calibrato.
-    MAP_SysCtl_delay(48000 * (SCAN_DELAY_MS / 2) / 3);
-
-    // 4. Transizione
-    CurrentState = STATE_TRIGGER_SENSOR;
+        CurrentState = STATE_TRIGGER_SENSOR;
 }
 
 void run_state_trigger_sensor() {
@@ -56,40 +51,46 @@ void run_state_trigger_sensor() {
 }
 
 void run_state_wait_echo() {
-    // Questa è una FSM Non-Blocking (o semi-blocking)
-    // Il main loop attende qui finché l'ISR del sensore (TA0_N_IRQHandler)
-    // imposta 'capture_done' a TRUE.
+    static uint32_t safety_counter = 0;
+    safety_counter++;
+
     if (capture_done) {
-        // La misurazione è terminata (Interrupt ricevuto)
+        capture_done = false;
+        safety_counter = 0;
         CurrentState = STATE_PROCESS_DATA;
-    } else {
-        // Non è ancora pronto, resta nello stesso stato (polling sulla flag)
-        // Alternativa: Inserire MAP_PCM_gotoLPM0() per il risparmio energetico
+    }
+    // Timeout aggressivo: se l'oggetto è oltre i 2 metri, passa oltre subito
+    else if (safety_counter > 15000) {
+        safety_counter = 0;
+        t_diff = 0;
+        capture_done = true;
+        CurrentState = STATE_PROCESS_DATA;
     }
 }
 
 void run_state_process_data() {
-    uint32_t distance_cm;
+    // 1. Calcola la distanza (sensor_calculate_distance_cm userà t_diff)
+    // capture_done viene resettato qui DOPO aver letto
+    uint32_t distance = sensor_calculate_distance_cm();
 
-    // 1. Ottiene la distanza dall'ISR
-    distance_cm = sensor_calculate_distance_cm();
-
-    // 2. Aggiorna l'angolo per il prossimo ciclo
+    // 2. Muovi l'angolo dopo la misura
     current_angle += angle_direction;
 
-    // (La distanza e l'angolo vengono passati implicitamente o esplicitamente
-    // alla funzione di visualizzazione, a seconda di come l'hai definita)
-
-    // 3. Transizione
     CurrentState = STATE_UPDATE_DISPLAY;
 }
 
-void run_state_update_display() {
-    // 1. Disegna il punto sul display LCD
-    // Assumiamo che la distanza calcolata nell'ultimo stato sia accessibile qui.
-    uint32_t distance_cm = sensor_calculate_distance_cm(); // Riafferra l'ultima distanza
-    EDUMKII_draw_radar(current_angle, distance_cm);
+// In fsm.c
+void run_state_update_display(Graphics_Context *ctx) {
+    uint32_t dist = sensor_calculate_distance_cm();
 
-    // 2. Transizione al prossimo ciclo di scansione
+    // Aggiorna sempre la mappa (linea verde)
+    drawRadar(ctx, current_angle, dist);
+
+    // Aggiorna il numero in alto solo ogni 5 gradi per non pesare sulla SPI
+    if (current_angle % 5 == 0) {
+        updateUI(ctx, current_angle, dist);
+    }
+    UART_IoT_SendData(current_angle, (int)dist);
+
     CurrentState = STATE_MOVE_SERVO;
 }
