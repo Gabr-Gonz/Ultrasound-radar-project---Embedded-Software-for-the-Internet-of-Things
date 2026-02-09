@@ -1,18 +1,19 @@
 #include "sensor.h"
 
-volatile uint32_t t_start = 0;
-volatile uint32_t t_diff = 0;
-volatile bool capture_done = false;
+volatile uint32_t t_start = 0;      // variable used to keep track of the starting time of the scan
+volatile uint32_t t_diff = 0;       // variable used to keep track of the ending time of the scan, used with the starting time it will be useful to calculate the distance of the object that has been scanned
+volatile bool capture_done = false; // variable used to check if the capture has been done or not
 
-static void init_ultrasonic_gpio(void) {
-    // Configura TRIG come output
+static void init_ultrasonic_gpio(void){
+    // set TRIG as output
     MAP_GPIO_setAsOutputPin(TRIG_PORT, TRIG_PIN);
     MAP_GPIO_setOutputLowOnPin(TRIG_PORT, TRIG_PIN);
 
     // Configura ECHO come ingresso con Pull-Down (più stabile per i 5V)
     MAP_GPIO_setAsInputPinWithPullDownResistor(ECHO_PORT, ECHO_PIN);
 
-    // Configura l'interrupt sulla Porta 3 per il pin ECHO
+    // set the interrupt on port 3 for the ECHO signal of the sensor
+
     MAP_GPIO_clearInterruptFlag(ECHO_PORT, ECHO_PIN);
     MAP_GPIO_enableInterrupt(ECHO_PORT, ECHO_PIN);
 
@@ -20,49 +21,49 @@ static void init_ultrasonic_gpio(void) {
     MAP_GPIO_interruptEdgeSelect(ECHO_PORT, ECHO_PIN, GPIO_LOW_TO_HIGH_TRANSITION);
 }
 
-static void init_timer_counter(void) {
-    // Usiamo il Timer A1 come cronometro dedicato per il sensore
+static void init_timer_counter(void){
+    // set the timer A1 to be used for the sensor, we use the A1 timer since the A0 is being used by the servo
     const Timer_A_ContinuousModeConfig contConfig = {
-        TIMER_A_CLOCKSOURCE_SMCLK,      // 3MHz
+        TIMER_A_CLOCKSOURCE_SMCLK,      // we use a 3MHz rate
         TIMER_A_CLOCKSOURCE_DIVIDER_1,
         TIMER_A_TAIE_INTERRUPT_DISABLE,
         TIMER_A_DO_CLEAR
     };
-    // CAMBIATO DA TIMER_A0 A TIMER_A1
+
+    // set the timer A1 to use the continous mode
     MAP_Timer_A_configureContinuousMode(TIMER_A1_BASE, &contConfig);
     MAP_Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_CONTINUOUS_MODE);
 }
 
-// In sensor.c, modifica la ISR così:
-void PORT3_IRQHandler(void) {
+void PORT3_IRQHandler(void){
     uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P3);
     MAP_GPIO_clearInterruptFlag(GPIO_PORT_P3, status);
 
-    if (status & ECHO_PIN) {
-        if (MAP_GPIO_getInputPinValue(ECHO_PORT, ECHO_PIN)) {
+    if(status & ECHO_PIN){
+        if(MAP_GPIO_getInputPinValue(ECHO_PORT, ECHO_PIN)){
             t_start = TIMER_A1->R;
             MAP_GPIO_interruptEdgeSelect(ECHO_PORT, ECHO_PIN, GPIO_HIGH_TO_LOW_TRANSITION);
-        } else {
+        } else{
             uint32_t t_end = TIMER_A1->R;
-            // Calcolo del delta tempo con gestione overflow a 16-bit
-            t_diff = (t_end >= t_start) ? (t_end - t_start) : (0xFFFF - t_start + t_end);
 
-            // Segnala alla FSM che il dato è PRONTO
+            t_diff = (t_end >= t_start) ? (t_end - t_start) : (0xFFFF - t_start + t_end);   // calculate the difference between the starting time and the ending time while checking if this operation ended in an overflow
+
+
             capture_done = true;
             MAP_GPIO_interruptEdgeSelect(ECHO_PORT, ECHO_PIN, GPIO_LOW_TO_HIGH_TRANSITION);
         }
     }
 }
 
-void sensor_init(void) {
-    init_ultrasonic_gpio();
-    init_timer_counter();
+void sensor_init(void){
+    init_ultrasonic_gpio();     // hardware bound part of code
+    init_timer_counter();       // hardware bound part of code
 
-    // Abilita l'interrupt nel controller (NVIC)
-    MAP_Interrupt_enableInterrupt(INT_PORT3);
+    MAP_Interrupt_enableInterrupt(INT_PORT3);   // enable the interrupt on the controller
 }
 
-void sensor_trigger(void) {
+void sensor_trigger(void){
+
     capture_done = false;
     t_diff = 0; // Resetta il valore precedente
     MAP_GPIO_setOutputHighOnPin(TRIG_PORT, TRIG_PIN);
@@ -70,10 +71,10 @@ void sensor_trigger(void) {
     MAP_GPIO_setOutputLowOnPin(TRIG_PORT, TRIG_PIN);
 }
 
-uint32_t sensor_calculate_distance_cm(void) {
-    if (t_diff == 0 || t_diff > 60000) return 400; // Vuoto o fuori portata
+uint32_t sensor_calculate_distance_cm(void){
+    if (t_diff == 0 || t_diff > 60000) return 400; // if the object is out of the range of the sensor, send an errore value
 
-    // A 3MHz, 1 tick = 0.333 us.
+    // since we are using a rate of 3MHz, 1 tick = 0.333 us, so the distance is (tick * 0.333 * 0.034) / 2 = tick / 176.4
     // Distanza = (tick * 0.333 * 0.034) / 2 = tick / 176.4
     uint32_t distance_cm = t_diff / 176;
 

@@ -1,19 +1,20 @@
 #ifndef FSM_H_
 #define FSM_H_
 #include <ti/devices/msp432p4xx/driverlib/driverlib.h>
-#include <ti/grlib/grlib.h> // Risolve l'errore undefined Graphics_Context
+#include <ti/grlib/grlib.h>
 #include "../LcdDriver/Crystalfontz128x128_ST7735.h"
-// Definizione degli stati della Finite State Machine
+
+// definition of the states of the finite state machine
 typedef enum {
-    STATE_INIT = 0,             // Inizializzazione (Configurazione hardware iniziale)
-    STATE_MOVE_SERVO,           // Muove il servo all'angolo successivo
-    STATE_TRIGGER_SENSOR,       // Invia il segnale TRIG all'ultrasuono
-    STATE_WAIT_ECHO,            // Attende l'interrupt di cattura dell'impulso ECHO
-    STATE_PROCESS_DATA,         // Calcola la distanza e aggiorna l'angolo
-    STATE_UPDATE_DISPLAY        // Disegna il punto rilevato sul display
+    STATE_MOVE_SERVO = 0,       // move the servo to the next angle
+    STATE_TRIGGER_SENSOR,       // trigger the sensor to capture the value of the current scan
+    STATE_WAIT_ECHO,            // wait for the sensor to capture the value
+    STATE_PROCESS_DATA,         // calculate the distance captured and update the scan to the next angle
+    STATE_UPDATE_DISPLAY        // draw the map on the display with the results of the scan
 } RadarState_t;
 
-// Variabile globale per lo stato corrente
+// global variable for the current state of the FSM
+
 extern volatile RadarState_t CurrentState;
 
 void run_state_init(Graphics_Context *ctx);
