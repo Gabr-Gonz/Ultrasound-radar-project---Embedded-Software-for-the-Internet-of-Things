@@ -3,61 +3,69 @@
 #include <stdio.h>
 
 #define RADAR_RANGE 200
-#define MAX_SENSOR_DIST 400  // Portata massima del sensore in cm
-#define RADAR_RADIUS    110  // Raggio del disegno sul display in pixel
+#define MAX_SENSOR_DIST 400  // maximum range of the sensor, in cm
+#define RADAR_RADIUS    110  // radius of the radar on the display, in pixel
 
-void initDisplayUI(Graphics_Context *ctx) {
-    Graphics_clearDisplay(ctx);
-    Graphics_setFont(ctx, &g_sFontFixed6x8);
-    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);
+void initDisplayUI(Graphics_Context *ctx){
+    Graphics_clearDisplay(ctx);                                 // clear the display
+    Graphics_setFont(ctx, &g_sFontFixed6x8);                    // set the font used
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);     // set the color of what we will write next
 
+    // print the title of the project at the given coordinates
     Graphics_drawString(ctx, (int8_t*)"MSP432 RADAR SYSTEM", AUTO_STRING_LENGTH, 10, 10, GRAPHICS_OPAQUE_TEXT);
 }
 
-// In display.c
+//function that draws the circles on the map to give a visual idea of how far the object using the scale of the map
+void displayUI(Graphics_Context *ctx){
+    Graphics_clearDisplay(ctx); //clear the display
 
-void displayUI(Graphics_Context *ctx) {
-    Graphics_clearDisplay(ctx);
-    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);
-
-    // Disegna cerchi di riferimento (opzionale, per i 100, 200, 300 cm)
+    // draws the circles on the map, to scale and give a visual idea of how far is the object from the sensor. We draw three grey circles,
+    // respectively that represent 100 cm, 200 cm and 300 cm
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_DIM_GRAY);
     Graphics_drawCircle(ctx, 64, 125, 27);  // ~100cm
     Graphics_drawCircle(ctx, 64, 125, 55);  // ~200cm
     Graphics_drawCircle(ctx, 64, 125, 82);  // ~300cm
 
-    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);
-    Graphics_drawLine(ctx, 0, 15, 128, 15);
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE); // set the color back to white for the next drawings
+    Graphics_drawLine(ctx, 0, 15, 128, 15);                 // draw the line on the top to separate the top section from the map
 }
 
-void updateUI(Graphics_Context *ctx, int angle, int distance) {
+// function that writes on the top-right of the display the distance of the object
+void updateUI(Graphics_Context *ctx, int angle, int distance){
+    // declare a buffer to store the value of the distance and set the font that we will write it
     char buffer[16];
     Graphics_setFont(ctx, &g_sFontFixed6x8);
-    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);
 
-    // Puliamo solo l'area del testo (una piccola striscia in alto a destra)
+    // draw a black rectangle on the distance written before to erase it, so we will be able to write the new distance
     Graphics_Rectangle rect = {80, 0, 128, 14};
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_BLACK);
     Graphics_fillRectangle(ctx, &rect);
 
-    // Scriviamo solo la distanza in alto a destra
-    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_SPRING_GREEN);
+    Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_SPRING_GREEN);  // set the color to write the distance to green
+    // check if the sensor captured an object in the range of the possible distance and set the buffer accordingly to what has been/has not been scanned
     if (distance > 0 && distance < 400) {
         sprintf(buffer, "%3d cm", distance);
     } else {
         sprintf(buffer, "---");
     }
-    Graphics_drawString(ctx, (int8_t*)buffer, AUTO_STRING_LENGTH, 85, 2, GRAPHICS_OPAQUE_TEXT);
+    Graphics_drawString(ctx, (int8_t*)buffer, AUTO_STRING_LENGTH, 85, 2, GRAPHICS_OPAQUE_TEXT); // write the value of the distance
 }
 
-void drawRadar(Graphics_Context *ctx, int angle, int distance) {
+void drawRadar(Graphics_Context *ctx, int angle, int distance){
+    // static variables used to keep track of the last line drawn. Since they are static, the value on the declaration (i.e., 64 and 125) will be
+    // stored only on the first call of the function, but on the next calls, their values will be equal to the last value to which they have been
+    // updated, so this first line will be ignored on the calls after the first one
     static int lastX = 64, lastY = 125;
 
-    // 1. Cancelliamo la vecchia linea di scansione (il "raggio")
+    // erase the line used before by drawing another black line on top of it
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_BLACK);
     Graphics_drawLine(ctx, 64, 125, lastX, lastY);
 
-    // 2. Calcoliamo la posizione della nuova linea di scansione
+    // we need to draw the line of the current scan, but since the sensor gives us the angle, we have to convert the polar coordinates to Cartesian
+    // coordinates, so we use the variable "rad" to keep the value in radians, which is calculated with the formula angle * pi / 180, and then we calculate the
+    // values of the cartesian coordinates by using the cosine and the sine, but we also need to add the value 64 to the x-coordinate, since it
+    // refers to the center of the display, and we need to subtract the value from 125 for the y-coordinate, since the value of the bottom of the
+    // screen is 128, but we start from a little above that
     float rad = angle * M_PI / 180.0f;
     int x = 64 + RADAR_RADIUS * cosf(rad);
     int y = 125 - RADAR_RADIUS * sinf(rad);
