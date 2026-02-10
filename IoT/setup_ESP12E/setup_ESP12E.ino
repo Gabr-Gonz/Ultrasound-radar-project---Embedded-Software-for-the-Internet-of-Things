@@ -43,20 +43,25 @@ const char* HTML_PAGE = R"rawliteral(
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 // Disegno raggio
-                const rad = (angle - 180) * Math.PI / 180;
+                const rad = angle * Math.PI / 180;
+
+                // 2. Disegno raggio
                 ctx.beginPath();
                 ctx.strokeStyle = '#0f0';
                 ctx.lineWidth = 2;
                 ctx.moveTo(centerX, centerY);
-                ctx.lineTo(centerX + radius * Math.cos(rad), centerY + radius * Math.sin(rad));
+
+                // X positiva (Math.cos) -> Parte da Destra e va verso Sinistra
+                // Y negativa (-Math.sin) -> Punta verso l'Alto
+                ctx.lineTo(centerX + radius * Math.cos(rad), centerY - radius * Math.sin(rad));
                 ctx.stroke();
 
-                // Disegno oggetto
+                // 3. Disegno oggetto (stessa logica per X e Y)
                 if(dist > 0 && dist < 400) {
                     const rObj = (dist / 400) * radius;
                     ctx.beginPath();
                     ctx.fillStyle = 'red';
-                    ctx.arc(centerX + rObj * Math.cos(rad), centerY + rObj * Math.sin(rad), 5, 0, Math.PI*2);
+                    ctx.arc(centerX + rObj * Math.cos(rad), centerY - rObj * Math.sin(rad), 5, 0, Math.PI*2);
                     ctx.fill();
                 }
             });
