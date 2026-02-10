@@ -12,7 +12,7 @@ The project integrates several components to create the dual-interface radar:
 * **Ultrasonic Sensor:** **HY-SRF05** (for distance measurement).
 * **Actuator:** **SG90 Servo Motor** (for 180° rotation).
 * **Boosterpack:** **Boosterpack EDU MKII** Used for showing the radar map on the display and for making connections via jumper wires.
-* **Passive Components:** * Jumper wires.
+* **Passive Components:** Jumper wires.
 
 ### Software & Tools
 To compile, upload, and run the code, you will need:
