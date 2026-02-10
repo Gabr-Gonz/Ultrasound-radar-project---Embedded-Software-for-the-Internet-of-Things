@@ -106,7 +106,7 @@ To use the IoT part of the project, it is necessary to flash the setup onto the 
 ## Link to the Youtube video
 
 ## Team members and contribution
-The team on its entirety collaborated on the main logic and the finite state machine (FSM) implementation. Individually, the members split their parts like this:
+The team as a whole collaborated on the main logic and the Finite State Machine (FSM) implementation. Individually, the members divided the tasks as follows:
 * Rocco Intini: Development of the IoT architecture and the HTML interface for radar visualization.
 * Leonardo Maria: Data visualization on the local display.
 * Lorenzo De Biasi: Handle of the servo-driven radar movement.
