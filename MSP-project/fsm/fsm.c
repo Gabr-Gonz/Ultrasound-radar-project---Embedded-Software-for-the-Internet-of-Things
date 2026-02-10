@@ -19,6 +19,8 @@ extern int8_t angle_direction;
 
 extern volatile bool capture_done;      // variable used in the part of the sensor to inform that if the capture has been done or not
 
+static uint32_t start_wait_time = 0;    // variable used to check if the object is too far
+
 void run_state_move_servo(Graphics_Context *ctx) {
 
     // check if the current angle has gone out of bounds and set the direction to move the other way
@@ -43,27 +45,35 @@ void run_state_move_servo(Graphics_Context *ctx) {
     CurrentState = STATE_TRIGGER_SENSOR;    // update to the next state of the FSM
 }
 
-void run_state_trigger_sensor() {
-
-    sensor_trigger();   // trigger the sensor to capture if there is something to scan or not
-
-    CurrentState = STATE_WAIT_ECHO;     // move to the next state of the FSM
+void run_state_trigger_sensor(){
+    sensor_trigger();
+    start_wait_time = TIMER_A1->R; // takes note of the start time of the trigger, useful to see if the object is too far
+    CurrentState = STATE_WAIT_ECHO;
 }
 
 void run_state_wait_echo() {
-    static uint32_t safety_counter = 0;
-    safety_counter++;
+    uint32_t current_time = TIMER_A1->R;
+    uint32_t elapsed;
+
+    // calculate the time while checking for the overflow of the timer register
+    if (current_time >= start_wait_time) {
+        elapsed = current_time - start_wait_time;
+    } else {
+        elapsed = (0xFFFF - start_wait_time) + current_time;
+    }
 
     if (capture_done) {
-        capture_done = false;   // update the variable to false to be ready for the next scan
-        safety_counter = 0;
-        CurrentState = STATE_PROCESS_DATA;      // move to the next state of the FSM to process the data obtained from the sensor
+        CurrentState = STATE_PROCESS_DATA;
     }
-    // Timeout aggressivo: se l'oggetto è oltre i 2 metri, passa oltre subito
-    else if (safety_counter > 15000) {
-        safety_counter = 0;
-        t_diff = 0;
-        capture_done = true;
+   /*
+     the maximum distance that the sensor sees is 4 meters, so since our clock runs at 3MHz, 1 tick = 0.33us,
+     and since the time for the sound to travel 8 meters (4 meters there and 4 back) is 23.5 ms, we will wait
+     for time = 23500 / 0.33 = 70000 more or less
+   */
+    else if (elapsed > 70000) {
+        t_diff = 0;          // no object seen
+        capture_done = true; // force the end of the capture
+        MAP_GPIO_interruptEdgeSelect(ECHO_PORT, ECHO_PIN, GPIO_LOW_TO_HIGH_TRANSITION); // reset the ECHO interrupt to up to be ready for the next scan
         CurrentState = STATE_PROCESS_DATA;
     }
 }
