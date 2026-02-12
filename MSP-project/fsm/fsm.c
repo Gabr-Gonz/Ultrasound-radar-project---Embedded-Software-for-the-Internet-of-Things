@@ -95,12 +95,7 @@ void run_state_update_display(Graphics_Context *ctx) {
     // update the map of the radar to the current angle
     drawRadar(ctx, current_angle, dist);    
 
-<<<<<<< HEAD
-    // update the distance on the up-right part of the map
-    updateUI(ctx, current_angle, dist);     
-=======
     updateUI(ctx, dist);     // update the distance on the up-right part of the map
->>>>>>> 2d9c165438cff188bf3da42b2036b5c07eff186f
 
     // send the data to the IoT module to process them
     UART_IoT_SendData(current_angle, (int)dist);    
