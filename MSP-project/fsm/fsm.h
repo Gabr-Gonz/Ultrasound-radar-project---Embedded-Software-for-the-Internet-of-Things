@@ -17,7 +17,6 @@ typedef enum {
 
 extern volatile RadarState_t CurrentState;
 
-void run_state_init(Graphics_Context *ctx);
 void run_state_move_servo(Graphics_Context *ctx);
 void run_state_trigger_sensor();
 void run_state_wait_echo();

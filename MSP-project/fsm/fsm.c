@@ -87,13 +87,19 @@ void run_state_process_data() {
 
 void run_state_update_display(Graphics_Context *ctx) {
 
-    uint32_t dist = sensor_calculate_distance_cm();     // calculate the distance of the object scanned, if it has not been scanned anything in the radius of the scanner, it will be set to an agreed value
+    // calculate the distance of the object scanned, 
+    // if it has not been scanned anything in the radius of the scanner, 
+    // it will be set to an agreed value
+    uint32_t dist = sensor_calculate_distance_cm();     
 
-    drawRadar(ctx, current_angle, dist);    // update the map of the radar to the current angle
+    // update the map of the radar to the current angle
+    drawRadar(ctx, current_angle, dist);    
 
-    updateUI(ctx, current_angle, dist);     // update the distance on the up-right part of the map
+    // update the distance on the up-right part of the map
+    updateUI(ctx, current_angle, dist);     
 
-    UART_IoT_SendData(current_angle, (int)dist);    // send the data to the IoT module to process them
+    // send the data to the IoT module to process them
+    UART_IoT_SendData(current_angle, (int)dist);    
 
     CurrentState = STATE_MOVE_SERVO;    // update the state of the FSM
 }

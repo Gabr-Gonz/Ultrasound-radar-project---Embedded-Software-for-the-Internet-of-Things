@@ -78,7 +78,7 @@ void drawRadar(Graphics_Context *ctx, int angle, int distance){
     lastY = y;
 
     // 4. Disegniamo l'oggetto riscalato
-    // Se la distanza è valida (tra 2cm e 400cm)
+    // Se la distanza ï¿½ valida (tra 2cm e 400cm)
     if (distance > 2 && distance <= MAX_SENSOR_DIST) {
 
         // Calcolo della proporzione: (distanza_reale / distanza_max) * raggio_pixel
