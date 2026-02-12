@@ -2,7 +2,6 @@
 #include <math.h>
 #include <stdio.h>
 
-#define RADAR_RANGE 200
 #define MAX_SENSOR_DIST 400  // maximum range of the sensor, in cm
 #define RADAR_RADIUS    110  // radius of the radar on the display, in pixel
 
@@ -61,47 +60,50 @@ void drawRadar(Graphics_Context *ctx, int angle, int distance){
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_BLACK);
     Graphics_drawLine(ctx, 64, 125, lastX, lastY);
 
-    // we need to draw the line of the current scan, but since the sensor gives us the angle, we have to convert the polar coordinates to Cartesian
-    // coordinates, so we use the variable "rad" to keep the value in radians, which is calculated with the formula angle * pi / 180, and then we calculate the
-    // values of the cartesian coordinates by using the cosine and the sine, but we also need to add the value 64 to the x-coordinate, since it
-    // refers to the center of the display, and we need to subtract the value from 125 for the y-coordinate, since the value of the bottom of the
-    // screen is 128, but we start from a little above that
+    /*
+     * we need to draw the line of the current scan, but since the sensor gives us the angle, we have to convert the polar coordinates to Cartesian
+     * coordinates, so we use the variable "rad" to keep the value in radians, which is calculated with the formula angle * pi / 180, and then
+     * we calculate the values of the cartesian coordinates by using the cosine and the sine, but we also need to add the value 64
+     * to the x-coordinate, since it refers to the center of the display, and we need to subtract the value from 125 for the y-coordinate,
+     * since the value of the bottom of the screen is 128, but we start from a little above that
+    */
     float rad = angle * M_PI / 180.0f;
     int x = 64 + RADAR_RADIUS * cosf(rad);
     int y = 125 - RADAR_RADIUS * sinf(rad);
 
-    // 3. Disegniamo la nuova linea di scansione (Verde)
+    // set the color to green and draw the line of the current scan
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_GREEN);
     Graphics_drawLine(ctx, 64, 125, x, y);
 
+    //update the variables for the next scan
     lastX = x;
     lastY = y;
 
-    // 4. Disegniamo l'oggetto riscalato
-    // Se la distanza è valida (tra 2cm e 400cm)
+    // check if the object is within the radar's detection range
     if (distance > 2 && distance <= MAX_SENSOR_DIST) {
 
-        // Calcolo della proporzione: (distanza_reale / distanza_max) * raggio_pixel
+        // we compute the r_scaled value by starting from this proportion: distance / max_sensor_dist = r_scaled / radar_radius
         float r_scaled = ((float)distance / MAX_SENSOR_DIST) * RADAR_RADIUS;
 
+        // and then we calculate the coordinates on the display by scaling with the value just computed
         int ox = 64 + r_scaled * cosf(rad);
         int oy = 125 - r_scaled * sinf(rad);
 
-        // Disegniamo il pallino rosso
+        // lastly, we draw the red dot on the map, representing the scanned object
         Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_RED);
         Graphics_fillCircle(ctx, ox, oy, 2);
     }
 }
 
-// In display.c
 
-void clearRadarMap(Graphics_Context *ctx) {
-    // Definiamo un rettangolo che copre l'area del radar (sotto la linea dei 15px)
+void clearRadarMap(Graphics_Context *ctx){
+    // erase the map of the last scan by drawing a black rectangle on top of it
     Graphics_Rectangle mapArea = {0, 16, 127, 127};
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_BLACK);
     Graphics_fillRectangle(ctx, &mapArea);
 
-    // (Opzionale) Ridisegna i cerchi della griglia dopo la pulizia
+    // draws the circles on the map, to scale and give a visual idea of how far is the object from the sensor. We draw three grey circles,
+    // respectively that represent 100 cm, 200 cm and 300 cm
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_DIM_GRAY);
     Graphics_drawCircle(ctx, 64, 125, 27);
     Graphics_drawCircle(ctx, 64, 125, 55);
