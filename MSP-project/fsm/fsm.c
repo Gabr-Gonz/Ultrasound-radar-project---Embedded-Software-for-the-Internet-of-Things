@@ -68,7 +68,7 @@ void run_state_wait_echo() {
    /*
      the maximum distance that the sensor sees is 4 meters, so since our clock runs at 3MHz, 1 tick = 0.33us,
      and since the time for the sound to travel 8 meters (4 meters there and 4 back) is 23.5 ms, we will wait
-     for time = 23500 / 0.33 = 70000 more or less
+     for time = 23500 / 0.33 =~ 70000
    */
     else if (elapsed > 70000) {
         t_diff = 0;          // no object seen
@@ -91,7 +91,7 @@ void run_state_update_display(Graphics_Context *ctx) {
 
     drawRadar(ctx, current_angle, dist);    // update the map of the radar to the current angle
 
-    updateUI(ctx, current_angle, dist);     // update the distance on the up-right part of the map
+    updateUI(ctx, dist);     // update the distance on the up-right part of the map
 
     UART_IoT_SendData(current_angle, (int)dist);    // send the data to the IoT module to process them
 

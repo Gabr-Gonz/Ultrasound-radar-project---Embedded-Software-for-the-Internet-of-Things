@@ -30,7 +30,7 @@ void displayUI(Graphics_Context *ctx){
 }
 
 // function that writes on the top-right of the display the distance of the object
-void updateUI(Graphics_Context *ctx, int angle, int distance){
+void updateUI(Graphics_Context *ctx, int distance){
     // declare a buffer to store the value of the distance and set the font that we will write it
     char buffer[16];
     Graphics_setFont(ctx, &g_sFontFixed6x8);
