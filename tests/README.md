@@ -18,7 +18,7 @@ To test this part, it is only needed to compile and run the code with gcc, so:
 gcc test_fsm_logic.c -o test_fsm_logic
 ./test_fsm_logic.
 ``` 
-If everything is set correctly, the program should run and simulate how our project works, printing each passage that is being done with the results of each operation (e.g., "scanned an object" or "nothing within the working range").
+If everything is set correctly, the program should run and simulate how our project works, printing each passage that is being done with the results of each operation (e.g., "scanned an object" or "nothing within the working range").  
 2. **Hardware tests**: To test this part, it is needed to use Code Composer Studio with the physical MSP432 board. Before starting, ensure that the `LcdDriver` folder and TI `DriverLib` are present in your project, and that all include paths are correctly configured (which passages are explained better in the README of the general project).
 
 Follow these steps to run a specific test:
