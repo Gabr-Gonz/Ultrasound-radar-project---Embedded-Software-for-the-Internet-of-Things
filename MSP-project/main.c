@@ -21,8 +21,7 @@ int16_t current_angle = 0;      // variable useful for the scanning, initialized
 int8_t angle_direction = 5;        // variable used to acknowledge in which direction the servo has to rotate and how much, initialized at five so it will move 5 degrees each time, starting from the positive range
 
 
-
-   void main(void){
+void main(void){
 
     MAP_WDT_A_holdTimer();      // macro used to stop the watchdog timer
 
