@@ -27,20 +27,17 @@ int8_t angle_direction = 5;        // variable used to acknowledge in which dire
     MAP_WDT_A_holdTimer();      // macro used to stop the watchdog timer
 
     // initialization of the display and its context, hardware bound part of code
-
     Crystalfontz128x128_Init();
     Crystalfontz128x128_SetOrientation(LCD_ORIENTATION_UP);
     Graphics_initContext(&g_sContext, &g_sCrystalfontz128x128, &g_sCrystalfontz128x128_funcs);
 
-    // configuration of the map on the display, hardware bound part of code
-
+    // configuration of the map on the display
     Graphics_setForegroundColor(&g_sContext, GRAPHICS_COLOR_WHITE);
     Graphics_setBackgroundColor(&g_sContext, GRAPHICS_COLOR_BLACK);
     Graphics_setFont(&g_sContext, &g_sFontFixed6x8);
     Graphics_clearDisplay(&g_sContext);
 
     // initialization of the modules used in the whole project
-
     Servo_Init();
     sensor_init();
     UART_IoT_Init();
