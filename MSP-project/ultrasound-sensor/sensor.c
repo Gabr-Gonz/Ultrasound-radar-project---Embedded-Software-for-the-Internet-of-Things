@@ -50,7 +50,6 @@ static void init_timer_counter(void){
 // It captures the timer value on the rising edge (start of pulse) and falling edge (end of pulse)
 // to calculate the total travel time (t_diff) used for distance measurement.
 void PORT3_IRQHandler(void){
-void PORT3_IRQHandler(void){
     // keep track of which pin of port 3 triggered the interrupt, then clear the flag to handle the interrupt and
     // to be ready to receive other interrupts in the future
     uint32_t status = MAP_GPIO_getEnabledInterruptStatus(GPIO_PORT_P3);
