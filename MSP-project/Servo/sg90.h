@@ -13,8 +13,8 @@
 * period = 93,750 * 0.02s = 1,875 ticks
  */
 #define SERVO_PWM_PERIOD   1875
-#define SERVO_MIN_DUTY     94    // 1.0ms -> 0° (SG90 standard)
-#define SERVO_MAX_DUTY     188   // 2.0ms -> 180° (SG90 standard)
+#define SERVO_MIN_DUTY     94    // 1.0ms -> 0ï¿½ (SG90 standard)
+#define SERVO_MAX_DUTY     188   // 2.0ms -> 180ï¿½ (SG90 standard)
 
 void Servo_Init(void);
 void Servo_Set_Angle(int16_t angle);

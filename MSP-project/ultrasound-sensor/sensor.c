@@ -126,7 +126,7 @@ void sensor_trigger(void){
     MAP_Timer_A_enableCaptureCompareInterrupt(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_0);
 
     /*
-     * to trigger the sensor, we need the TRIG signal to be active for at least 10 us, so we set the TRIG pin on high and, since
+     * to trigger the sensor, we need the TRIG signal to be active for at least 10 ms, so we set the TRIG pin on high and, since
      * our clock runs at 3 MHz, it performs 3 000 000 cycles per second, so we need to wait for an amount of at least 3 000 000 * 0.00001 = 30 cycles
      * to be sure that the sensor will begin to track data, then we can set the pin back on low
      */

@@ -20,6 +20,7 @@ void Servo_Init() {
         TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE,    // disable the interrupt of CCR0, since we do not need it
         TIMER_A_SKIP_CLEAR                      // do not start to count when it will be configured, but wait until we say to do so
     };
+    // setting the configurations 
     MAP_Timer_A_configureUpMode(TIMER_A0_BASE, &upConfig);
 
     // configure the CCR2 channel for the PWM
@@ -27,8 +28,9 @@ void Servo_Init() {
         TIMER_A_CAPTURECOMPARE_REGISTER_2,          // CCR2 channel
         TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE,   // disable the interrupt of the capture compare, since we do not need it
         TIMER_A_OUTPUTMODE_RESET_SET,               // set the PWM mode: when the timer starts from 0, the pin will be high, when it reaches the desired value, it will be set to low and restart again
-        SERVO_MIN_DUTY                              // the capture value, which in the beginning is set to 94, since based on the standard of the SG90 we need a 1 ms pulse if we want to start from 0°, which is 93 750 / 1000 = 93.75 ~ 94
+        SERVO_MIN_DUTY                              // the capture value, which in the beginning is set to 94, since based on the standard of the SG90 we need a 1 ms pulse if we want to start from 0ï¿½, which is 93 750 / 1000 = 93.75 ~ 94
     };
+    // setting the configurations
     MAP_Timer_A_initCompare(TIMER_A0_BASE, &outConfig);
 
     // tell the timer to start counting
@@ -43,7 +45,7 @@ void Servo_Set_Angle(int16_t angle) {
     // formula to compute the next comparison value for the register, mapping the desired scan angle to the servo's duty cycle
     // based on SG90 standards. (SERVO_MAX_DUTY - SERVO_MIN_DUTY) indicates the total number of ticks within which the servo can move
     // (the operational range).  The expression ((angle * range) / 180) calculates the proportional offset for the  current angle
-    // (e.g., 90° is 50% of the range). Finally, we add SERVO_MIN_DUTY  to align this offset with the 1ms (0°) base required by the SG90.
+    // (e.g., 90ï¿½ is 50% of the range). Finally, we add SERVO_MIN_DUTY  to align this offset with the 1ms (0ï¿½) base required by the SG90.
     uint32_t duty = SERVO_MIN_DUTY + (uint32_t)((angle * (SERVO_MAX_DUTY - SERVO_MIN_DUTY)) / 180);
 
     // set the capture just computed

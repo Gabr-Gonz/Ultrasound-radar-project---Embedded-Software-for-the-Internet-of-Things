@@ -69,7 +69,6 @@ void run_state_process_data() {
 }
 
 void run_state_update_display(Graphics_Context *ctx) {
-
     // calculate the distance of the object scanned, if it has not been scanned anything in the radius of the scanner,
     // it will be set to an agreed value, contains hardware-dependent code
     uint32_t dist = sensor_calculate_distance_cm();
