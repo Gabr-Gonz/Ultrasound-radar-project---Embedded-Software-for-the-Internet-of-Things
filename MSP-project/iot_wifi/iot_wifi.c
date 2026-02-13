@@ -36,7 +36,7 @@ void UART_IoT_SendData(int angle, int distance){
     // format the data into a CSV string.The format is "angle,distance\n".
     int len = sprintf(buffer, "%d,%d\n", angle, d);
 
-    // Transmission: Send the string character by character over UART. The hardware module handles the serialization of each byte.
+    // transmission: Send the string character by character over UART. The hardware module handles the serialization of each byte. This is an hardware-dependent part of code
     int i;
     for(i = 0; i < len; i++) {
         MAP_UART_transmitData(EUSCI_A1_BASE, buffer[i]);

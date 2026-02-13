@@ -21,5 +21,6 @@ void sensor_init(void);
 void sensor_trigger(void);
 uint32_t sensor_calculate_distance_cm(void);
 void PORT3_IRQHandler(void);
+void TA1_0_IRQHandler(void);
 
 #endif /* SENSOR_H_ */

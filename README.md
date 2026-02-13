@@ -20,6 +20,17 @@ To compile, upload, and run the code, you will need:
 * **Arduino IDE:** Used for flashing the ESP-12E (C++ with ESP8266 Core).
 * **Web Browser:** (Chrome, Firefox, or Safari) to access the IoT Dashboard.
 
+## How it works
+The core of this project is the MSP432P401R board, which coordinates each module to ensure they work together seamlessly. The system consists of specific wiring between components (detailed later in this document) and a custom physical mount for the SG90 servo, which allows the HY-SRF05 sensor to rotate from 0° to 180°. This setup enables the sensor to scan the environment and detect nearby objects up to 4 meters away.
+
+The MSP432 controls the servo using a timer in PWM (Pulse Width Modulation) mode; the servo determines its rotation angle based on the received duty cycle. After each movement of the servo, the MSP432 triggers the ultrasonic sensor. By using a hardware timer register, the system tracks exactly when the trigger was sent and waits for the response.
+
+At this stage, two cases are distinguished:
+* **Object detected**: The sensor sends an echo signal back to the MSP432. The board captures a second timer value and calculates the difference (time-of-flight) to compute the object's distance.
+* **No object detected**: To prevent the system from waiting indefinitely, a timeout interrupt is used. This interrupt triggers if too much time passes without a return signal, indicating that no object is within range.
+
+In both cases, the MSP432 will go to low-power mode and will wake up only when an interrupt will happen. Then, the board processes the data to update the radar map on the BoosterPack display and simultaneously sends the information to the ESP-12E module to be visualized on a web page.
+
 ## Project Layout
 
 ```
@@ -34,9 +45,9 @@ To compile, upload, and run the code, you will need:
 │   ├── Servo/                  # SG90 PWM control
 │   ├── Display/                # High-level radar drawing functions on the Boosterpack display
 │   ├── LcdDriver/              # Driver with functions useful for the Boosterpack display
-│   ├── iot_wifi/               # UART communication with ESP-12E
-│   └── targetConfigs/          
-└── README.md                   # Project documentation
+│   └── iot_wifi/               # UART communication with ESP-12E      
+├── tests/                      # Project testing
+└── README.md                   # Project documentation 
 ```
 
 ## Getting started

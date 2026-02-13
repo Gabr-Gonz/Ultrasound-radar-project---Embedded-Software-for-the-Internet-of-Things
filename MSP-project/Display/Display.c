@@ -6,27 +6,27 @@
 #define RADAR_RADIUS    110  // radius of the radar on the display, in pixel
 
 void initDisplayUI(Graphics_Context *ctx){
-    Graphics_clearDisplay(ctx);                                 // clear the display
+    Graphics_clearDisplay(ctx);                                 // clear the display, hardware dependent code
     Graphics_setFont(ctx, &g_sFontFixed6x8);                    // set the font used
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE);     // set the color of what we will write next
 
-    // print the title of the project at the given coordinates
+    // print the title of the project at the given coordinates, hardware dependent code
     Graphics_drawString(ctx, (int8_t*)"MSP432 RADAR SYSTEM", AUTO_STRING_LENGTH, 10, 10, GRAPHICS_OPAQUE_TEXT);
 }
 
 //function that draws the circles on the map to give a visual idea of how far the object using the scale of the map
 void displayUI(Graphics_Context *ctx){
-    Graphics_clearDisplay(ctx); //clear the display
+    Graphics_clearDisplay(ctx); //clear the display, hw-dependent code
 
     // draws the circles on the map, to scale and give a visual idea of how far is the object from the sensor. We draw three grey circles,
-    // respectively that represent 100 cm, 200 cm and 300 cm
+    // respectively that represent 100 cm, 200 cm and 300 cm. This is a hardware-dependent part of code
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_DIM_GRAY);
     Graphics_drawCircle(ctx, 64, 125, 27);  // ~100cm
     Graphics_drawCircle(ctx, 64, 125, 55);  // ~200cm
     Graphics_drawCircle(ctx, 64, 125, 82);  // ~300cm
 
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_WHITE); // set the color back to white for the next drawings
-    Graphics_drawLine(ctx, 0, 15, 128, 15);                 // draw the line on the top to separate the top section from the map
+    Graphics_drawLine(ctx, 0, 15, 128, 15);                 // draw the line on the top to separate the top section from the map, hardware-dependent code
 }
 
 // function that writes on the top-right of the display the distance of the object
@@ -47,7 +47,7 @@ void updateUI(Graphics_Context *ctx, int distance){
     } else {
         sprintf(buffer, "---");
     }
-    Graphics_drawString(ctx, (int8_t*)buffer, AUTO_STRING_LENGTH, 85, 2, GRAPHICS_OPAQUE_TEXT); // write the value of the distance
+    Graphics_drawString(ctx, (int8_t*)buffer, AUTO_STRING_LENGTH, 85, 2, GRAPHICS_OPAQUE_TEXT); // write the value of the distance, hardware-dependent code
 }
 
 void drawRadar(Graphics_Context *ctx, int angle, int distance){
@@ -103,7 +103,7 @@ void clearRadarMap(Graphics_Context *ctx){
     Graphics_fillRectangle(ctx, &mapArea);
 
     // draws the circles on the map, to scale and give a visual idea of how far is the object from the sensor. We draw three grey circles,
-    // respectively that represent 100 cm, 200 cm and 300 cm
+    // respectively that represent 100 cm, 200 cm and 300 cm. This is an hw-dependent part of code
     Graphics_setForegroundColor(ctx, GRAPHICS_COLOR_DIM_GRAY);
     Graphics_drawCircle(ctx, 64, 125, 27);
     Graphics_drawCircle(ctx, 64, 125, 55);

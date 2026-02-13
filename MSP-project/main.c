@@ -25,7 +25,7 @@ void main(void){
 
     MAP_WDT_A_holdTimer();      // macro used to stop the watchdog timer
 
-    // initialization of the display and its context, hardware bound part of code
+    // initialization of the display and its context
     Crystalfontz128x128_Init();
     Crystalfontz128x128_SetOrientation(LCD_ORIENTATION_UP);
     Graphics_initContext(&g_sContext, &g_sCrystalfontz128x128, &g_sCrystalfontz128x128_funcs);
@@ -43,7 +43,7 @@ void main(void){
     initDisplayUI(&g_sContext);
     displayUI(&g_sContext);
 
-    MAP_Interrupt_enableMaster();       // set the system to make it able to receive interrupts
+    MAP_Interrupt_enableMaster();        // set the system to make it able to receive interrupts
 
     CurrentState = STATE_MOVE_SERVO;     // set the first state of the FSM
 

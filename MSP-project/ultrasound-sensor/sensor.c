@@ -34,9 +34,22 @@ static void init_timer_counter(void){
     //  and then it will restart from 0. This is the best option for our project since we only need to keep track of some values
     //  while the timer is counting to compare them
     MAP_Timer_A_configureContinuousMode(TIMER_A1_BASE, &contConfig);
+
+    // we use the CCR0 channel in capture-compare mode to send a timeout when the object is too distant from the sensor
+    MAP_Timer_A_clearCaptureCompareInterrupt(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_0);
+    MAP_Timer_A_enableCaptureCompareInterrupt(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_0);
+
+
     MAP_Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_CONTINUOUS_MODE);
+
+    // enable the interrupt on NVIC controller
+    MAP_Interrupt_enableInterrupt(INT_TA1_0);
 }
 
+// ISR for Port 3: handles the echo signal.
+// It captures the timer value on the rising edge (start of pulse) and falling edge (end of pulse)
+// to calculate the total travel time (t_diff) used for distance measurement.
+void PORT3_IRQHandler(void){
 void PORT3_IRQHandler(void){
     // keep track of which pin of port 3 triggered the interrupt, then clear the flag to handle the interrupt and
     // to be ready to receive other interrupts in the future
@@ -63,9 +76,33 @@ void PORT3_IRQHandler(void){
 
             capture_done = true;    // update the variable to inform that the capture has been done
 
+            // disable the timer on CCR0 since the capture has been completed
+            MAP_Timer_A_disableCaptureCompareInterrupt(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_0);
+
             // since we tracked the ending time, we now need to check when the value of the pin will be on high to register the next scan
             MAP_GPIO_interruptEdgeSelect(ECHO_PORT, ECHO_PIN, GPIO_LOW_TO_HIGH_TRANSITION);
+
+            // exit the low-power mode
+            MAP_Interrupt_disableSleepOnIsrExit();
         }
+    }
+}
+
+// ISR on CCR0 of timer_A1, it is used to send a timeout if the object is too far from the sensor
+void TA1_0_IRQHandler(void){
+    // clean CCR0 flag interrupts
+    MAP_Timer_A_clearCaptureCompareInterrupt(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_0);
+
+    // check if the capture has not been done, in that case we need to inform that nothing is in the range of the sensor
+    if (!capture_done) {
+        t_diff = 0;          // nothing within the range
+        capture_done = true; // unlock the FSM
+
+        //reset the ECHO interrupt to look for a new rising edge, as no pulse was returned.
+        MAP_GPIO_interruptEdgeSelect(ECHO_PORT, ECHO_PIN, GPIO_LOW_TO_HIGH_TRANSITION);
+
+        // exit the low-power mode
+        MAP_Interrupt_disableSleepOnIsrExit();
     }
 }
 
@@ -81,6 +118,14 @@ void sensor_trigger(void){
     capture_done = false;   // set it to false to begin the next capture
     t_diff = 0;             // reset the value to be ready for the next capture
 
+    // schedule the timeout for 65000 ticks (~21.6ms at 3MHz rate, that is the time for the sound to make a round-trip of 4 meters) from the
+    // current timer value. The bitwise AND with 0xFFFF handles the 16-bit register overflow, ensuring the comparison point is
+    // correctly calculated even if the timer resets, which could happen since it is in continuous mode.
+    uint32_t timeout_val = (TIMER_A1->R + 65000) & 0xFFFF;
+    MAP_Timer_A_setCompareValue(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_0, timeout_val);
+    MAP_Timer_A_clearCaptureCompareInterrupt(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_0);
+    MAP_Timer_A_enableCaptureCompareInterrupt(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_0);
+
     /*
      * to trigger the sensor, we need the TRIG signal to be active for at least 10 us, so we set the TRIG pin on high and, since
      * our clock runs at 3 MHz, it performs 3 000 000 cycles per second, so we need to wait for an amount of at least 3 000 000 * 0.00001 = 30 cycles
@@ -92,7 +137,7 @@ void sensor_trigger(void){
 }
 
 uint32_t sensor_calculate_distance_cm(void){
-    if (t_diff == 0 || t_diff > 60000) return 400; // if the object is out of the range of the sensor, send an error value
+    if (t_diff == 0 || t_diff > 65000) return 400; // if the object is out of the range of the sensor, send an error value
 
     /*
      * since we are using a rate of 3MHz, 1 tick = 0.333 us, and since the speed of sound is 0.034 cm/us and we need to keep track of the time that
