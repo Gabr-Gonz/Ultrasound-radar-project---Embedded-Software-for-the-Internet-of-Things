@@ -41,12 +41,13 @@ In both cases, the MSP432 will go to low-power mode and will wake up only when a
 ├── MSP-project/                # MSP432 Main Firmware
 │   ├── main.c                  # Application entry point
 │   ├── fsm/                    # Finite State Machine logic
-│   ├── ultrasound-sensor/      # HY-SRF05 driver (distance measurement)
+│   ├── ultrasound-sensor/      # Sensor HY-SRF05 driver (distance measurement)
 │   ├── Servo/                  # SG90 PWM control
-│   ├── Display/                # High-level radar drawing functions on the Boosterpack display
+│   ├── Display/                # Radar drawing functions on the Boosterpack display
 │   ├── LcdDriver/              # Driver with functions useful for the Boosterpack display
 │   └── iot_wifi/               # UART communication with ESP-12E      
 ├── tests/                      # Project testing
+├── images/                     # Images in this file
 └── README.md                   # Project documentation 
 ```
 
