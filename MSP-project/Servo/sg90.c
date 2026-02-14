@@ -42,12 +42,12 @@ void Servo_Set_Angle(int16_t angle) {
     if (angle < 0) angle = 0;
     if (angle > 180) angle = 180;
 
-    // formula to compute the next comparison value for the register, mapping the desired scan angle to the servo's duty cycle
+    // formula to compute the next duty cycle value for the register, mapping the desired scan angle to the servo's duty cycle
     // based on SG90 standards. (SERVO_MAX_DUTY - SERVO_MIN_DUTY) indicates the total number of ticks within which the servo can move
     // (the operational range).  The expression ((angle * range) / 180) calculates the proportional offset for the  current angle
     // (e.g., 90� is 50% of the range). Finally, we add SERVO_MIN_DUTY  to align this offset with the 1ms (0�) base required by the SG90.
     uint32_t duty = SERVO_MIN_DUTY + (uint32_t)((angle * (SERVO_MAX_DUTY - SERVO_MIN_DUTY)) / 180);
 
-    // set the capture just computed
+    // set the value just computed to define the duty cycle to move the servo
     MAP_Timer_A_setCompareValue(TIMER_A0_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_2, duty);
 }
