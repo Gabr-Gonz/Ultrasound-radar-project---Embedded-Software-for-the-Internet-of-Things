@@ -11,12 +11,6 @@
 #define ANGLE_STEP     5    // we set the scan to move 5 degrees each time
 #define SCAN_DELAY_MS  5
 
-// variables defined in the main
-extern volatile RadarState_t CurrentState;
-extern int16_t current_angle;
-extern int8_t angle_direction;
-
-extern volatile bool capture_done;      // variable used in the part of the sensor to inform that if the capture has been done or not
 
 void run_state_move_servo(Graphics_Context *ctx) {
 

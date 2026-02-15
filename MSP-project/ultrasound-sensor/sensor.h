@@ -13,8 +13,6 @@
 #define ECHO_PORT       GPIO_PORT_P3
 #define ECHO_PIN        GPIO_PIN3
 
-extern volatile uint32_t t_start;
-extern volatile uint32_t t_diff;
 extern volatile bool capture_done;
 
 void sensor_init(void);

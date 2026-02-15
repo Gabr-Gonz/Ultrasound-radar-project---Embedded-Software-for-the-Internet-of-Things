@@ -13,9 +13,10 @@ typedef enum {
     STATE_UPDATE_DISPLAY        // draw the map on the display with the results of the scan
 } RadarState_t;
 
-// global variable for the current state of the FSM
-
+// variables defined in the main
 extern volatile RadarState_t CurrentState;
+extern int16_t current_angle;
+extern int8_t angle_direction;
 
 void run_state_move_servo(Graphics_Context *ctx);
 void run_state_trigger_sensor();
