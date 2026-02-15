@@ -47,7 +47,7 @@ In both cases, the MSP432 will go to low-power mode and will wake up only when a
 │   ├── LcdDriver/              # Driver with functions useful for the Boosterpack display
 │   └── iot_wifi/               # UART communication with ESP-12E      
 ├── tests/                      # Project testing
-├── images/                     # Images in this file
+├── assets/                     # Projects images and presentation
 └── README.md                   # Project documentation 
 ```
 
@@ -117,7 +117,8 @@ To use the IoT part of the project, it is necessary to flash the setup onto the 
 
 ![View of the web page](images/web-page-radar.gif)
 
-## Link to the PowerPoint presentation
+## Link to the project presentation
+<a href="assets/Moving%20Ultrasound%20Radar.pdf" target="_blank">Link to project PDF presentation</a>
 
 ## Link to the Youtube video
 
