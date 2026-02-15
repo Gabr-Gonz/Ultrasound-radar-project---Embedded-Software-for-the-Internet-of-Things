@@ -118,7 +118,7 @@ To use the IoT part of the project, it is necessary to flash the setup onto the 
 ![View of the web page](images/web-page-radar.gif)
 
 ## Link to the project presentation
-<a href="assets/Moving%20Ultrasound%20Radar.pdf" target="_blank">Link to project PDF presentation</a>
+[Link to the project PDF presentation](assets/Moving%20Ultrasound%20Radar.pdf)
 
 ## Link to the Youtube video
 
