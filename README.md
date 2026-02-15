@@ -121,6 +121,7 @@ To use the IoT part of the project, it is necessary to flash the setup onto the 
 [Link to the project PDF presentation](assets/Moving%20Ultrasound%20Radar.pdf)
 
 ## Link to the Youtube video
+<a href="https://youtu.be/PwhkS8Q195M?si=vYBIJ0O2Z2EJw5j1" target="_blank">Link to the YouTube video</a>
 
 ## Team members and contribution
 The team as a whole collaborated on the main logic and the Finite State Machine (FSM) implementation. Individually, the members divided the tasks as follows:
